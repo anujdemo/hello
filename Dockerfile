@@ -1,11 +1,11 @@
-FROM python:3.10
+FROM python:3.7
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-ADD ./flask_web ./var/www/flask_web
-COPY ./requirements.txt ./var/www/flask_web/requirements.txt
-RUN pip install --no-cache-dir -r ./var/www/flask_web/requirements.txt
-#COPY ./flask_web/app.py /var/www/flask_web/app.py
-WORKDIR ./var/www/flask_web
-EXPOSE 5000
-CMD ["python", "-m", "app"]
+COPY hello.py /app
+
+RUN pip install --upgrade pip
+
+RUN pip install -r requirements.txt
+
+CMD ["python", "hello.py"]
