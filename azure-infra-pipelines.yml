@@ -1,0 +1,44 @@
+trigger:
+- none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - name: terraformVersion
+    value: '0.14.5'
+  - name: azureSubscription
+    value: <azure_subscription_id>
+  - name: resourceGroup
+    value: <resource_group_name>
+  - name: storageAccountName
+    value: <storage_account_name>
+  - name: containerName
+    value: <container_name>
+
+stages:
+- stage: Deploy
+  displayName: Deploy
+  jobs:
+  - job: Deploy
+    displayName: Deploy
+    steps:
+    - task: TerraformInstaller@0
+      inputs:
+        terraformVersion: $(terraformVersion)
+    - script: terraform init
+      displayName: 'Terraform init'
+    - script: terraform plan -out=plan.out
+      displayName: 'Terraform plan'
+      env:
+        ARM_SUBSCRIPTION_ID: $(azureSubscription)
+        ARM_CLIENT_ID: $(servicePrincipalId)
+        ARM_CLIENT_SECRET: $(servicePrincipalKey)
+        ARM_TENANT_ID: $(tenantId)
+        TF_VAR_resource_group_name: $(resourceGroup)
+        TF_VAR_storage_account_name: $(storageAccountName)
+        TF_VAR_container_name: $(containerName)
+    - task: TerraformApply@0
+      inputs:
+        workingDirectory: $(System.DefaultWorkingDirectory)
+        terraformExecutionPlan: plan.out

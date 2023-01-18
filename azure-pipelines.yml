@@ -1,0 +1,75 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+parameters:
+- name: stgDeploy
+  type: boolean
+  default: true
+  displayName: "Deploy to Staging"  
+
+- name: prodDeploy
+  type: boolean
+  default: false
+  displayName: "Deploy to Prod" 
+
+variables:  
+  - name: azureSubscription
+    value: <azure_subscription_id>
+  - name: resourceGroup
+    value: <resource_group_name>
+  - name: appName
+    value: <app_name>
+  - name: stageSlot
+    value: stage
+  - name: prodSlot
+    value: prod
+
+stages:
+- stage: Build
+  displayName: Build
+  jobs:  
+  - job: Build
+    displayName: Build
+    steps:
+    - task: GitHubCheckout@0
+      inputs:
+        gitHubConnection: <github_connection_name>
+        repository: anujdemo/hello
+        branch: main
+    - task: Python@2
+      inputs:
+        version: 3.8
+        script: |
+          pip install -r requirements.txt
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: $(Build.SourcesDirectory)
+        artifactName: main
+      displayName: 'Publish artifact'  
+
+- stage: Deploy
+  displayName: Deploy
+  dependsOn: Build
+  jobs:
+  - job: Deploy
+    displayName: Deploy to stage
+    steps:
+    - task: AzureWebApp@1
+      inputs:
+        azureSubscription: $(azureSubscription)
+        appName: $(appName)
+        slot: $(stageSlot)
+        resourceGroupName: $(resourceGroup)
+        package: $(Pipeline.Workspace)/main.py
+    
+    - task: AzureWebApp@1
+      condition: succeeded()
+      displayName: Deploy to production
+      inputs:
+        azureSubscription: $(azureSubscription)
+        appName: $(appName)
+        slot: $(prodSlot)
+        resourceGroupName: $(resourceGroup)
+        package: $(Pipeline.Workspace)/main.py
