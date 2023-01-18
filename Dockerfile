@@ -3,6 +3,7 @@ FROM python:3.7
 WORKDIR /app
 
 COPY hello.py /app
+COPY requirements.txt /app
 
 RUN pip install --upgrade pip
 
