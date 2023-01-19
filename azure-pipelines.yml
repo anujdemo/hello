@@ -1,3 +1,4 @@
+name: $(Build.DefinitionName)-$(Build.SourceBranchName)-$(date:yyyyMMdd)$(rev:.r)
 trigger:
 - main
 
