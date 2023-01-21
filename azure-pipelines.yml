@@ -73,3 +73,4 @@ stages:
         slot: $(prodSlot)
         resourceGroupName: $(resourceGroup)
         package: $(Pipeline.Workspace)/main.py
+        
