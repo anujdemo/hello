@@ -21,11 +21,7 @@ variables:
     value: <resource_group_name>
   - name: appName
     value: <app_name>
-  - name: stageSlot
-    value: stage
-  - name: prodSlot
-    value: prod
-
+  
 stages:
 - stage: Build
   displayName: Build
@@ -33,21 +29,26 @@ stages:
   - job: Build
     displayName: Build
     steps:
-    - task: GitHubCheckout@0
+    - task: UsePythonVersion@0
       inputs:
-        gitHubConnection: <github_connection_name>
-        repository: anujdemo/hello
-        branch: main
-    - task: Python@2
-      inputs:
-        version: 3.8
+        versionSpec: '3.x'
+        addToPath: true
+        architecture: 'x64'
         script: |
           pip install -r requirements.txt
-    - task: PublishBuildArtifacts@1
+    - task: Bash@3
+      displayName: 'Create Deploy Package'
       inputs:
-        pathtoPublish: $(Build.SourcesDirectory)
-        artifactName: main
-      displayName: 'Publish artifact'  
+          targetType: 'inline'
+          script: |
+            sudo apt-get install zip unzip -qy
+            zip -r $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip .
+    - task: PublishBuildArtifacts@1
+      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+      inputs:
+          pathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+          artifactName: main
+      displayName: 'Publish  artifact'
 
 - stage: Deploy
   displayName: Deploy
@@ -56,21 +57,29 @@ stages:
   - job: Deploy
     displayName: Deploy to stage
     steps:
-    - task: AzureWebApp@1
+    - task: DownloadBuildArtifacts@1
       inputs:
+       buildType: 'current'
+       downloadType: 'single'
+       artifactName: 'main'
+       downloadPath: '$(System.ArtifactsDirectory)'
+    - task: AzureRmWebAppDeployment@4
+      inputs:
+        ConnectionType: 'AzureRM'
         azureSubscription: $(azureSubscription)
-        appName: $(appName)
-        slot: $(stageSlot)
-        resourceGroupName: $(resourceGroup)
-        package: $(Pipeline.Workspace)/main.py
+        appType: 'webAppLinux'
+        WebAppName: 'hello-stg'
+        packageForLinux: '$(System.ArtifactsDirectory)/**/*.zip'
+        RuntimeStack: 'PYTHON|3.8'
     
     - task: AzureWebApp@1
       condition: succeeded()
       displayName: Deploy to production
       inputs:
+        ConnectionType: 'AzureRM'
         azureSubscription: $(azureSubscription)
-        appName: $(appName)
-        slot: $(prodSlot)
-        resourceGroupName: $(resourceGroup)
-        package: $(Pipeline.Workspace)/main.py
+        appType: 'webAppLinux'
+        WebAppName: 'hello-prd'
+        packageForLinux: '$(System.ArtifactsDirectory)/**/*.zip'
+        RuntimeStack: 'PYTHON|3.8'
         
