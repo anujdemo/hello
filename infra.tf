@@ -1,6 +1,7 @@
 provider "azurerm" {
   version = "=2.40.0"
   features {}
+  
 }
 
 resource "azurerm_resource_group" "example" {
@@ -44,7 +45,7 @@ resource "azurerm_virtual_machine" "example" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "20.04-LTS"
+    sku       = "16.04-LTS"
     version   = "latest"
   }
 
@@ -55,8 +56,8 @@ resource "azurerm_virtual_machine" "example" {
   
   os_profile {
     computer_name  = "my-vm"
-    admin_username = "azureuser"
-    admin_password = "Azure123456"
+    admin_username = "adminuser"
+    admin_password = "admin1234567"
   }
   
   os_profile_linux_config {
