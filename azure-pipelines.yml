@@ -1,3 +1,4 @@
+name: $(Build.DefinitionName)-$(Build.SourceBranchName)-$(date:yyyyMMdd)$(rev:.r)
 trigger:
 - main
 
@@ -14,14 +15,7 @@ parameters:
   default: false
   displayName: "Deploy to Prod" 
 
-variables:  
-  - name: azureSubscription
-    value: <azure_subscription_id>
-  - name: resourceGroup
-    value: <resource_group_name>
-  - name: appName
-    value: <app_name>
-  
+ 
 stages:
 - stage: Build
   displayName: Build
