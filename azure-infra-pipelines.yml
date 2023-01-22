@@ -40,7 +40,8 @@ stages:
         TF_VAR_container_name: $(containerName)
     - task: TerraformTaskV3@3
       inputs:
-        workingDirectory: $(System.DefaultWorkingDirectory)
+        provider: 'azurerm'
+        command: 'apply'
         terraformExecutionPlan: plan.out
-        environmentServiceNameAzureRM: '$(azureSubscription)'
+        environmentServiceNameAzureRM: ''
         
